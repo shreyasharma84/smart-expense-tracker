@@ -28,18 +28,21 @@ class Expense(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.category} - {self.amount}"
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    monthly_budget = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+class Budget(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='budget')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
-        return self.user.username
+        return f"{self.user.username} - {self.amount}"
 
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
+def create_budget(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+        Budget.objects.create(user=instance)
 
 @receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+def save_budget(sender, instance, **kwargs):
+    if hasattr(instance, 'budget'):
+        instance.budget.save()
+    else:
+        Budget.objects.create(user=instance)

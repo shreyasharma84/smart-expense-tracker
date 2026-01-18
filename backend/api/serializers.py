@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Expense, UserProfile
+from .models import Expense, Budget
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -11,22 +11,19 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create_user(
-            username=validated_data['username'], # using email as username or separate? Simple tracker usually uses email as login.
+            username=validated_data['username'],
             email=validated_data.get('email', ''),
             password=validated_data['password']
         )
-        # Note: In the frontend, we use name/email/password. 
-        # For simplicity, we can map email to username or just use username.
-        # Let's assume the frontend sends 'username' for now or we handle it in views.
         if 'first_name' in validated_data:
             user.first_name = validated_data['first_name']
         user.save()
         return user
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class BudgetSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserProfile
-        fields = ('monthly_budget',)
+        model = Budget
+        fields = ('amount',)
 
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:

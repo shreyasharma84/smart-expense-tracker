@@ -7,13 +7,22 @@ const Signup = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const { signup } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        signup(name, email, password);
-        navigate('/');
+        setError('');
+        const result = await signup(name, email, password);
+        if (result.success) {
+            navigate('/');
+        } else {
+            const errorMsg = typeof result.error === 'object'
+                ? JSON.stringify(result.error)
+                : result.error;
+            setError(errorMsg || 'Signup failed.');
+        }
     };
 
     return (
@@ -23,6 +32,12 @@ const Signup = () => {
                     <h1 className="font-bold" style={{ fontSize: '1.5rem' }}>Create Account</h1>
                     <p className="text-muted mt-2">Start your journey to financial freedom</p>
                 </div>
+
+                {error && (
+                    <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: 'hsl(var(--danger))', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.875rem', textAlign: 'center' }}>
+                        {error}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div>

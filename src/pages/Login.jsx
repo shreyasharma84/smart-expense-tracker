@@ -10,13 +10,18 @@ const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const result = login(email, password);
+        setError('');
+        const result = await login(email, password);
         if (result.success) {
             navigate('/');
         } else {
-            setError(result.error);
+            // Handle error object stringification if it's not a simple string
+            const errorMsg = typeof result.error === 'object'
+                ? JSON.stringify(result.error)
+                : result.error;
+            setError(errorMsg || 'Login failed. Please check your credentials.');
         }
     };
 

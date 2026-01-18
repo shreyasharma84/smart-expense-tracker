@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import api from '../utils/axios';
 
 const ExpenseContext = createContext();
 
@@ -13,55 +14,76 @@ export const ExpenseProvider = ({ children }) => {
     // Load data when user changes
     useEffect(() => {
         if (user) {
-            const storedExpenses = localStorage.getItem(`expenses_${user.id}`);
-            const storedBudget = localStorage.getItem(`budget_${user.id}`);
-
-            if (storedExpenses) setExpenses(JSON.parse(storedExpenses));
-            else setExpenses([]);
-
-            if (storedBudget) setBudget(parseFloat(storedBudget));
-            else setBudget(0);
+            fetchExpenses();
+            fetchBudget();
         } else {
             setExpenses([]);
             setBudget(0);
         }
     }, [user]);
 
-    // Save data whenever it changes
-    useEffect(() => {
-        if (user) {
-            localStorage.setItem(`expenses_${user.id}`, JSON.stringify(expenses));
+    const fetchExpenses = async () => {
+        try {
+            const res = await api.get('expenses/');
+            // API returns decimal as string usually, ensure proper parsing if needed
+            const formatted = res.data.map(e => ({
+                ...e,
+                amount: parseFloat(e.amount)
+            }));
+            setExpenses(formatted);
+        } catch (error) {
+            console.error("Failed to fetch expenses", error);
         }
-    }, [expenses, user]);
+    }
 
-    useEffect(() => {
-        if (user) {
-            localStorage.setItem(`budget_${user.id}`, budget.toString());
+    const fetchBudget = async () => {
+        try {
+            const res = await api.get('budget/');
+            setBudget(parseFloat(res.data.amount || 0));
+        } catch (error) {
+            console.error("Failed to fetch budget", error);
         }
-    }, [budget, user]);
+    }
 
-    const addExpense = (expense) => {
-        const newExpense = {
-            ...expense,
-            id: Date.now().toString(),
-            amount: parseFloat(expense.amount),
-            date: expense.date || new Date().toISOString().split('T')[0]
-        };
-        setExpenses(prev => [newExpense, ...prev]);
+    const addExpense = async (expense) => {
+        try {
+            const res = await api.post('expenses/', expense);
+            const newExpense = { ...res.data, amount: parseFloat(res.data.amount) };
+            setExpenses(prev => [newExpense, ...prev]);
+            return { success: true };
+        } catch (error) {
+            console.error("Add failed", error);
+            return { success: false };
+        }
     };
 
-    const deleteExpense = (id) => {
-        setExpenses(prev => prev.filter(exp => exp.id !== id));
+    const deleteExpense = async (id) => {
+        try {
+            await api.delete(`expenses/${id}/`);
+            setExpenses(prev => prev.filter(exp => exp.id !== id));
+        } catch (error) {
+            console.error("Delete failed", error);
+        }
     };
 
-    const editExpense = (id, updatedData) => {
-        setExpenses(prev => prev.map(exp =>
-            exp.id === id ? { ...exp, ...updatedData, amount: parseFloat(updatedData.amount) } : exp
-        ));
+    const editExpense = async (id, updatedData) => {
+        try {
+            const res = await api.patch(`expenses/${id}/`, updatedData);
+            setExpenses(prev => prev.map(exp =>
+                exp.id === id ? { ...res.data, amount: parseFloat(res.data.amount) } : exp
+            ));
+        } catch (error) {
+            console.error("Edit failed", error);
+        }
     };
 
-    const setMonthlyBudget = (amount) => {
-        setBudget(parseFloat(amount));
+    const setMonthlyBudget = async (amount) => {
+        try {
+            const res = await api.put('budget/', { amount });
+            setBudget(parseFloat(res.data.amount));
+        } catch (error) {
+            console.error("Set budget failed", error);
+        }
     };
 
     const getStats = () => {

@@ -2,8 +2,8 @@ from rest_framework import generics, viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from .models import Expense, UserProfile
-from .serializers import UserSerializer, ExpenseSerializer, UserProfileSerializer
+from .models import Expense, Budget
+from .serializers import UserSerializer, ExpenseSerializer, BudgetSerializer
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -17,34 +17,44 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Expense.objects.filter(user=self.request.user)
 
-class UserProfileView(APIView):
+class BudgetView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        profile, created = UserProfile.objects.get_or_create(user=request.user)
-        serializer = UserProfileSerializer(profile)
+        budget, created = Budget.objects.get_or_create(user=request.user)
+        serializer = BudgetSerializer(budget)
+        # Include user details if needed, or keep it clean
         data = serializer.data
-        data['username'] = request.user.username
-        data['email'] = request.user.email
-        data['name'] = request.user.first_name
         return Response(data)
 
     def put(self, request):
-        profile, created = UserProfile.objects.get_or_create(user=request.user)
-        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        budget, created = Budget.objects.get_or_create(user=request.user)
+        serializer = BudgetSerializer(budget, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            
-            user_updated = False
-            if 'email' in request.data:
-                request.user.email = request.data['email']
-                user_updated = True
-            if 'name' in request.data:
-                request.user.first_name = request.data['name']
-                user_updated = True
-            if user_updated:
-                request.user.save()
-                
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
+class ProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        data = {
+            'username': request.user.username,
+            'email': request.user.email,
+            'name': request.user.first_name,
+        }
+        return Response(data)
+
+    def put(self, request):
+        user = request.user
+        if 'email' in request.data:
+            user.email = request.data['email']
+        if 'name' in request.data:
+            user.first_name = request.data['name']
+        user.save()
+        return Response({
+            'username': user.username,
+            'email': user.email,
+            'name': user.first_name,
+        })

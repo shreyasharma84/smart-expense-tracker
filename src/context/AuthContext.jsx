@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../utils/axios';
 
 const AuthContext = createContext();
 
@@ -9,53 +10,66 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check local storage for mock session
-    const storedUser = localStorage.getItem('mock_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    checkUser();
   }, []);
 
-  const login = (email, password) => {
-    // Mock login logic
-    if (email && password) { // Simple validation
-      const mockUser = {
-        name: email.split('@')[0], // Extract name from email for demo
-        email: email,
-        id: Date.now().toString()
-      };
-      setUser(mockUser);
-      localStorage.setItem('mock_user', JSON.stringify(mockUser));
-      return { success: true };
+  const checkUser = async () => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      try {
+        const res = await api.get('profile/');
+        setUser(res.data);
+      } catch (error) {
+        console.error(error);
+        logout();
+      }
     }
-    return { success: false, error: 'Invalid credentials' };
+    setLoading(false);
+  }
+
+  const login = async (username, password) => {
+    try {
+      const res = await api.post('login/', { username, password });
+      localStorage.setItem('access_token', res.data.access);
+      localStorage.setItem('refresh_token', res.data.refresh);
+      await checkUser();
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Login failed' };
+    }
   };
 
-  const signup = (name, email, password) => {
-    // Mock signup logic
-    const mockUser = {
-      name,
-      email,
-      id: Date.now().toString()
-    };
-    setUser(mockUser);
-    localStorage.setItem('mock_user', JSON.stringify(mockUser));
-    return { success: true };
+  const signup = async (name, email, password) => {
+    try {
+      // Use email as username to ensure consistency with login
+      await api.post('register/', {
+        username: email,
+        email,
+        password,
+        first_name: name
+      });
+      // Auto login after signup
+      return await login(email, password);
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: 'Signup failed. Email might be already taken.' };
+    }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('mock_user');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
   };
 
-  const updateProfile = (data) => {
-      setUser(prev => {
-          const newUser = { ...prev, ...data };
-          localStorage.setItem('mock_user', JSON.stringify(newUser));
-          return newUser;
-      });
+  const updateProfile = async (data) => {
+    try {
+      const res = await api.put('profile/', data);
+      setUser(res.data);
       return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Update failed' };
+    }
   }
 
   const value = {
