@@ -4,6 +4,7 @@ import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { ArrowUpRight, Wallet, PieChart, AlertTriangle, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency } from '../utils/formatCurrency';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -58,7 +59,7 @@ const Dashboard = () => {
                     <div className="flex justify-between">
                         <div>
                             <p className="text-muted font-medium" style={{ fontSize: '0.875rem' }}>Total Spent</p>
-                            <h3 className="font-bold" style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>${totalExpenses.toFixed(2)}</h3>
+                            <h3 className="font-bold" style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>{formatCurrency(totalExpenses)}</h3>
                             <div className="flex items-center mt-2 text-danger" style={{ fontSize: '0.875rem' }}>
                                 <ArrowUpRight size={16} style={{ marginRight: '0.25rem' }} />
                                 <span>+2.5% vs last month</span>
@@ -76,10 +77,10 @@ const Dashboard = () => {
                     <div className="flex justify-between">
                         <div>
                             <p className="text-muted font-medium" style={{ fontSize: '0.875rem' }}>Remaining Budget</p>
-                            <h3 className="font-bold" style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>${remaining.toFixed(2)}</h3>
+                            <h3 className="font-bold" style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>{formatCurrency(remaining)}</h3>
                             <div className="flex items-center mt-2 text-success" style={{ fontSize: '0.875rem' }}>
                                 <Wallet size={16} style={{ marginRight: '0.25rem' }} />
-                                <span>of ${budget.toFixed(2)} Budget</span>
+                                <span>of {formatCurrency(budget)} Budget</span>
                             </div>
                         </div>
                         <div className="flex-center" style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(52, 211, 153, 0.2)', color: 'hsl(var(--secondary))' }}>
@@ -142,7 +143,7 @@ const Dashboard = () => {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold">-${expense.amount.toFixed(2)}</p>
+                                        <p className="font-bold">-{formatCurrency(expense.amount)}</p>
                                         {expense.description && <p className="text-muted" style={{ fontSize: '0.75rem', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{expense.description}</p>}
                                     </div>
                                 </div>

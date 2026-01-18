@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useExpense } from '../context/ExpenseContext';
 import { Target, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import { formatCurrency } from '../utils/formatCurrency';
 
 const Budget = () => {
     const { budget, setMonthlyBudget, getStats } = useExpense();
@@ -34,7 +35,7 @@ const Budget = () => {
                     {!isEditing ? (
                         <div className="flex flex-col gap-4">
                             <p className="text-muted font-semibold" style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Budget</p>
-                            <h2 className="font-bold" style={{ fontSize: '3rem', lineHeight: 1 }}>${budget.toFixed(2)}</h2>
+                            <h2 className="font-bold" style={{ fontSize: '3rem', lineHeight: 1 }}>{formatCurrency(budget)}</h2>
                             <button
                                 onClick={() => setIsEditing(true)}
                                 className="btn-secondary mt-4"
@@ -47,7 +48,7 @@ const Budget = () => {
                         <div className="animate-fade-in flex flex-col gap-4">
                             <label className="text-muted block">Enter New Monthly Budget</label>
                             <div style={{ position: 'relative' }}>
-                                <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', fontSize: '1.25rem', fontWeight: 'bold', color: 'hsl(var(--text-muted))' }}>$</span>
+                                <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', fontSize: '1.25rem', fontWeight: 'bold', color: 'hsl(var(--text-muted))' }}>₹</span>
                                 <input
                                     type="number"
                                     value={newBudget}
@@ -77,7 +78,7 @@ const Budget = () => {
                         <div>
                             <div className="flex justify-between" style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                                 <span className="text-muted">Spent</span>
-                                <span className="font-bold">${totalExpenses.toFixed(2)}</span>
+                                <span className="font-bold">{formatCurrency(totalExpenses)}</span>
                             </div>
                             <div className="progress-bar-bg">
                                 <div className="progress-bar-fill" style={{ width: '100%', background: 'hsl(var(--secondary))', opacity: 0.5 }}></div>
@@ -88,7 +89,7 @@ const Budget = () => {
                             <div className="flex justify-between" style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                                 <span className="text-muted">Remaining</span>
                                 <span className={`font-bold ${remaining < 0 ? 'text-danger' : 'text-success'}`}>
-                                    ${remaining.toFixed(2)}
+                                    {formatCurrency(remaining)}
                                 </span>
                             </div>
                             <div className="progress-bar-bg">
@@ -111,7 +112,7 @@ const Budget = () => {
                                 <AlertTriangle size={32} />
                             </div>
                             <h3 className="text-danger font-bold" style={{ fontSize: '1.25rem' }}>Budget Exceeded!</h3>
-                            <p className="text-muted mt-2">You have spent ${(totalExpenses - budget).toFixed(2)} over your limit.</p>
+                            <p className="text-muted mt-2">You have spent {formatCurrency(totalExpenses - budget)} over your limit.</p>
                         </>
                     ) : status === 'warning' ? (
                         <>

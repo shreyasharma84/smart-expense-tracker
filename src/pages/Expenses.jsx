@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useExpense } from '../context/ExpenseContext';
 import { Plus, Trash2, Edit2, X, Search, Filter } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency } from '../utils/formatCurrency';
 
 const Expenses = () => {
     const { expenses, addExpense, deleteExpense, editExpense } = useExpense();
@@ -11,6 +12,7 @@ const Expenses = () => {
     const [categoryFilter, setCategoryFilter] = useState('All');
 
     const categories = ['Food', 'Travel', 'Rent', 'Shopping', 'Entertainment', 'Utilities', 'Health', 'Other'];
+    const [isCustomCategory, setIsCustomCategory] = useState(false);
 
     const initialFormState = {
         amount: '',
@@ -28,6 +30,7 @@ const Expenses = () => {
         } else {
             setCurrentExpense(null);
             setFormData(initialFormState);
+            setIsCustomCategory(false);
         }
         setIsModalOpen(true);
     };
@@ -126,7 +129,7 @@ const Expenses = () => {
 
                             <div className="flex items-center gap-6">
                                 <span className="font-bold" style={{ fontSize: '1.25rem' }}>
-                                    -${expense.amount.toFixed(2)}
+                                    -{formatCurrency(expense.amount)}
                                 </span>
                                 <div className="flex gap-2">
                                     <button
@@ -168,30 +171,62 @@ const Expenses = () => {
                         <form onSubmit={handleSubmit} className="flex flex-col gap-4" style={{ padding: '1.5rem' }}>
                             <div>
                                 <label className="text-muted font-medium mb-4" style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Category</label>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-                                    {categories.slice(0, 4).map(cat => (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                                    {categories.map(cat => (
                                         <button
                                             key={cat}
                                             type="button"
-                                            onClick={() => setFormData({ ...formData, category: cat })}
+                                            onClick={() => {
+                                                setFormData({ ...formData, category: cat });
+                                                setIsCustomCategory(false);
+                                            }}
                                             style={{
                                                 padding: '0.5rem',
                                                 borderRadius: '8px',
-                                                border: formData.category === cat ? '1px solid hsl(var(--primary))' : '1px solid rgba(255,255,255,0.1)',
-                                                background: formData.category === cat ? 'rgba(129, 140, 248, 0.2)' : 'transparent',
-                                                color: formData.category === cat ? 'white' : 'hsl(var(--text-muted))',
+                                                border: formData.category === cat && !isCustomCategory ? '1px solid hsl(var(--primary))' : '1px solid rgba(255,255,255,0.1)',
+                                                background: formData.category === cat && !isCustomCategory ? 'rgba(129, 140, 248, 0.2)' : 'transparent',
+                                                color: formData.category === cat && !isCustomCategory ? 'white' : 'hsl(var(--text-muted))',
                                                 cursor: 'pointer',
-                                                fontSize: '0.875rem'
+                                                fontSize: '0.75rem'
                                             }}
                                         >
                                             {cat}
                                         </button>
                                     ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData({ ...formData, category: '' });
+                                            setIsCustomCategory(true);
+                                        }}
+                                        style={{
+                                            padding: '0.5rem',
+                                            borderRadius: '8px',
+                                            border: isCustomCategory ? '1px solid hsl(var(--primary))' : '1px solid rgba(255,255,255,0.1)',
+                                            background: isCustomCategory ? 'rgba(129, 140, 248, 0.2)' : 'transparent',
+                                            color: isCustomCategory ? 'white' : 'hsl(var(--text-muted))',
+                                            cursor: 'pointer',
+                                            fontSize: '0.75rem'
+                                        }}
+                                    >
+                                        + Custom
+                                    </button>
                                 </div>
+                                {isCustomCategory && (
+                                    <input
+                                        type="text"
+                                        placeholder="Enter custom category"
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        className="mt-2"
+                                        autoFocus
+                                        required
+                                    />
+                                )}
                             </div>
 
                             <div>
-                                <label className="text-muted font-medium" style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Amount ($)</label>
+                                <label className="text-muted font-medium" style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Amount (₹)</label>
                                 <input
                                     type="number"
                                     required

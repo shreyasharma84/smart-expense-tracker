@@ -4,20 +4,9 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 class Expense(models.Model):
-    CATEGORY_CHOICES = [
-        ('Food', 'Food'),
-        ('Travel', 'Travel'),
-        ('Rent', 'Rent'),
-        ('Shopping', 'Shopping'),
-        ('Entertainment', 'Entertainment'),
-        ('Utilities', 'Utilities'),
-        ('Health', 'Health'),
-        ('Other', 'Other'),
-    ]
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    category = models.CharField(max_length=50) # Allow custom categories
     date = models.DateField()
     description = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

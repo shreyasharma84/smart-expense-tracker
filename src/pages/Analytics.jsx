@@ -1,6 +1,7 @@
 import { useExpense } from '../context/ExpenseContext';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
+import { formatCurrency } from '../utils/formatCurrency';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -118,7 +119,7 @@ const Analytics = () => {
                     <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
                         <p className="text-muted" style={{ fontSize: '0.875rem' }}>Average Transaction</p>
                         <p className="text-secondary font-bold mt-2" style={{ fontSize: '1.25rem' }}>
-                            ${expenses.length > 0 ? (expenses.reduce((a, b) => a + b.amount, 0) / expenses.length).toFixed(2) : '0.00'}
+                            {expenses.length > 0 ? formatCurrency(expenses.reduce((a, b) => a + b.amount, 0) / expenses.length) : formatCurrency(0)}
                         </p>
                     </div>
                     <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
